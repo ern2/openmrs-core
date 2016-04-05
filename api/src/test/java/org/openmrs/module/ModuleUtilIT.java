@@ -98,6 +98,23 @@ public class ModuleUtilIT extends BaseContextSensitiveTest {
 		Assert.assertEquals("firstmodule", ModuleUtil.getMandatoryModules().get(0));
 	}
 
+        /**
+         * @see ModuleUtil#matchRequiredVersions(String,String)
+         */
+        @Test
+        @Verifies(value = "should handle null values", method = "matchRequiredVersions(String,String)")
+        public void matchRequriedVersion_shouldAllowNullValues() throws Exception {
+                Assert.assertTrue(ModuleUtil.matchRequiredVersions(null, null));
+        }
+
+        /**
+         * @see ModuleUtil#matchRequiredVersions(String,String)
+         */
+        @Test
+        @Verifies(value = "should handle empty Strings", method = "matchRequiredVersions(String,String)")
+        public void matchRequriedVersion_shouldAllowEmptyStrings() throws Exception {
+                Assert.assertTrue(ModuleUtil.matchRequiredVersions("", ""));
+        }
 
 	/**
 	 * @see ModuleUtil#matchRequiredVersions(String,String)
