@@ -475,16 +475,23 @@ public final class Module {
 	public void setUpdateVersion(String updateVersion) {
 		this.updateVersion = updateVersion;
 	}
+
+	/**
+	 * @return the log
+	 */
+	public Log getLog() {
+		return log;
+	}
 	
 	/**
 	 * @return the extensions
 	 */
 	public List<Extension> getExtensions() {
-		if (extensions.size() == extensionNames.size()) {
+		if (extensionsMatchNames()) {
 			return extensions;
+		} else {
+			return expandExtensionNames();
 		}
-		
-		return expandExtensionNames();
 	}
 	
 	/**
@@ -512,6 +519,28 @@ public final class Module {
 		}
 		this.extensionNames = map;
 	}
+
+	/**
+	 * Tests whether extensions match the contents of extensionNames.  Used to determine
+	 * if expandExtensionNames needs to be called.<br>
+	 *
+	 * @return a boolean for whether extensions match the contents of extensionNames
+	 */
+	private boolean extensionsMatchNames() {
+		if (extensionNames != null && extensionNames.size() != 0) {
+			for (Extension ext : extensions) {
+				if (extensionNames.get(ext.getPointId()) != ext.getClass().getName()) {
+					return false;
+				}
+			}
+
+			if (extensions.size() != extensionNames.size()) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
 	
 	/**
 	 * Expand the temporary extensionNames map of pointid-classname to full pointid-classobject. <br>
@@ -526,7 +555,8 @@ public final class Module {
 		if (moduleClsLoader == null) {
 			log.debug(String.format("Module class loader is not available, maybe the module %s is stopped/stopping",
 			    getName()));
-		} else if (extensions.size() != extensionNames.size()) {
+		} else if (!extensionsMatchNames()) {
+			extensions.clear();
 			for (Map.Entry<String, String> entry : extensionNames.entrySet()) {
 				String point = entry.getKey();
 				String className = entry.getValue();
