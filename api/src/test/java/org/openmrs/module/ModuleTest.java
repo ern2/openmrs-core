@@ -9,6 +9,8 @@
  */
 package org.openmrs.module;
 
+import org.openmrs.test.BaseContextSensitiveTest;
+
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -16,32 +18,38 @@ import org.junit.Before;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.io.File;
 
 /**
  * Tests Module methods
  */
-public class ModuleTest {
+public class ModuleTest extends BaseContextSensitiveTest {
 
-	Module mockModule;
+	private Module mockModule;
 	
 	@Before
-	public void before() {
-		mockModule = new Module("mockmodule", "mockmodule", "org.openmrs.module.mockmodule", "author", "description", "1.0");
+	public void before() throws Exception {
+		String omodPath = "org/openmrs/module/include/test1-1.0-SNAPSHOT.omod";
+
+		runtimeProperties.setProperty(ModuleConstants.RUNTIMEPROPERTY_MODULE_LIST_TO_LOAD, omodPath);
+		ModuleUtil.startup(runtimeProperties);
+
+		mockModule = ModuleFactory.getModuleById("test1");
 	}
 
 	/*
-	 * @verifies 
+	 * @verifies not expand extensionNames if extensionNames is null
 	 * @see Module#getExtensions()
 	 */
 	@Test
-	public void getExtensions_shouldNotExpandWhenExtensionNamesIsNull() {
+	public void getExtensions_shouldNotExpandExtensionNamesIfExtensionNamesIsNull() {
 		ArrayList<Extension> extensions = new ArrayList<Extension>();
 
 		Extension mockExtension = new MockExtension();
 		extensions.add(mockExtension);
 
 		mockModule.setExtensions(extensions);
-		mockModule.serExtensionNames(null);
+		mockModule.setExtensionNames(null);
 		ArrayList<Extension> ret = new ArrayList<Extension>(mockModule.getExtensions());
 
 		assertEquals(extensions.get(0), ret.get(0));
@@ -49,17 +57,18 @@ public class ModuleTest {
 	}
 
 	/*
-	 * @verifies
+         * @verifies not expand extensionNames if extensionNames is empty
 	 * @see Module#getExtensions()
 	 */
 	@Test
-	public void getExtensions_shouldNotExpandWhenExtensionNamesIsEmpty() {
+	public void getExtensions_shouldNotExpandExtensionNamesIfExtensionNamesIsEmpty() {
 		ArrayList<Extension> extensions = new ArrayList<Extension>();
 
 		Extension mockExtension = new MockExtension();
 		extensions.add(mockExtension);
 
 		mockModule.setExtensions(extensions);
+		mockModule.setExtensionNames(new IdentityHashMap<String, String>());
 		ArrayList<Extension> ret = new ArrayList<Extension>(mockModule.getExtensions());
 
 		assertEquals(extensions.get(0), ret.get(0));
@@ -67,21 +76,21 @@ public class ModuleTest {
 	}
 
 	/*
-	 * @verifies
+         * @verifies not expand extensionNames if extensions matches extensionNames
 	 * @see Module#getExtensions()
 	 */
 	@Test
-	public void getExtensions_shouldNotExpandWhenExtensionsMatchesExtensionNames() {
+	public void getExtensions_shouldNotExpandExtensionNamesIfExtensionsMatchesExtensionNames() {
 		ArrayList<Extension> extensions = new ArrayList<Extension>();
-		IdentityHashMap<String, String> extensionNames = new IdentitHashMap<String, String>();
+		IdentityHashMap<String, String> extensionNames = new IdentityHashMap<String, String>();
 
 		Extension mockExtension = new MockExtension();
 		mockExtension.setPointId("1");
 		extensions.add(mockExtension);
-		extensionNames.put("1", mockExtension.getClass.getName());
+		extensionNames.put("1", mockExtension.getClass().getName());
 
 		mockModule.setExtensions(extensions);
-		mockModuel.setExtensionNames(extensionNames);
+		mockModule.setExtensionNames(extensionNames);
 		ArrayList<Extension> ret = new ArrayList<Extension>(mockModule.getExtensions());
 
 		assertEquals(extensions.get(0), ret.get(0));
@@ -89,11 +98,11 @@ public class ModuleTest {
 	}
 
 	/*
-	 * @verifies
+         * @verifies expand extensionNames if extensions does not match extensionNames
 	 * @see Module#getExtensions()
 	 */
 	@Test
-	public void getExtensions_shouldExpandWhenExtensionsDoesNotMatchExtensionNames() {
+	public void getExtensions_shouldExpandExtensionNamesIfExtensionsDoesNotMatchExtensionNames() {
 		ArrayList<Extension> extensions = new ArrayList<Extension>();
 		IdentityHashMap<String, String> extensionNames = new IdentityHashMap<String, String>();
 

@@ -475,16 +475,14 @@ public final class Module {
 	public void setUpdateVersion(String updateVersion) {
 		this.updateVersion = updateVersion;
 	}
-
-	/**
-	 * @return the log
-	 */
-	public Log getLog() {
-		return log;
-	}
 	
 	/**
 	 * @return the extensions
+	 *
+	 * @should not expand extensionNames if extensionNames is null
+	 * @should not expand extensionNames if extensionNames is empty
+	 * @should not expand extensionNames if extensions matches extensionNames
+	 * @should expand extensionNames if extensions does not match extensionNames 
 	 */
 	public List<Extension> getExtensions() {
 		if (extensionsMatchNames()) {
@@ -522,7 +520,7 @@ public final class Module {
 
 	/**
 	 * Tests whether extensions match the contents of extensionNames.  Used to determine
-	 * if expandExtensionNames needs to be called.<br>
+	 * if expandExtensionNames should to be called.<br>
 	 *
 	 * @return a boolean for whether extensions match the contents of extensionNames
 	 */
