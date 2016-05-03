@@ -11,11 +11,13 @@ package org.openmrs.module;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.lang.reflect.Method;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,6 +27,7 @@ import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import org.openmrs.Privilege;
 
 /**
  * Tests ModuleFileParser
@@ -137,4 +140,108 @@ public class ModuleFileParserTest {
 		
 		assertThat(conditionalResources, contains(htmlformentry));
 	}
+
+	@Test
+	public void getAdvice_shouldParseAdvicePoints() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><module configVersion=\"1.2\">"
+			+ "<advice><point>1</point><class>test.fake.AdviceClassOne</class></advice>"
+			+ "<advice><point>2</point><class>test.fake.AdviceClassTwo</class></advice>"
+			+ "<advice><point>3</point><class>test.fake.AdviceClassThree</class></advice>"
+			+ "</module>";
+
+		Element documentElement = getRootElement(xml);
+		Module testModule = new Module("test");
+		ModuleFileParser parser = new ModuleFileParser();
+
+		Method getadvice = parser.getClass().getDeclaredMethod("getAdvice", Element.class, String.class, Module.class);
+		getadvice.setAccessible(true);
+		List<AdvicePoint> advicePoints = (List<AdvicePoint>) getadvice.invoke(parser, documentElement, "", testModule);
+
+		assertEquals(3, advicePoints.size());
+	}
+
+	@Test
+	public void getAdvice_shouldNotAddAdviceWhenMissingPoint() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><module configVersion=\"1.2\">"
+			+ "<advice><class>test.fake.AdviceClassOne</class></advice>"
+			+ "</module>";
+
+		Element documentElement = getRootElement(xml);
+		Module testModule = new Module("test");
+		ModuleFileParser parser = new ModuleFileParser();
+
+		Method getadvice = parser.getClass().getDeclaredMethod("getAdvice", Element.class, String.class, Module.class);
+		getadvice.setAccessible(true);
+		List<AdvicePoint> advicePoints = (List<AdvicePoint>) getadvice.invoke(parser, documentElement, "", testModule);
+
+		assertEquals(0, advicePoints.size());
+	}
+
+	@Test
+	public void getAdvice_shouldNotAddAdviceWhenMissingClass() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><module configVersion=\"1.2\">"
+			+ "<advice><point>1</point></advice>"
+			+ "</module>";
+
+		Element documentElement = getRootElement(xml);
+		Module testModule = new Module("test");
+		ModuleFileParser parser = new ModuleFileParser();
+
+		Method getadvice = parser.getClass().getDeclaredMethod("getAdvice", Element.class, String.class, Module.class);
+		getadvice.setAccessible(true);
+		List<AdvicePoint> advicePoints = (List<AdvicePoint>) getadvice.invoke(parser, documentElement, "", testModule);
+
+		assertEquals(0, advicePoints.size());
+	}
+
+	@Test
+	public void getPrivileges_shouldParsePrivileges() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><module configVersion=\"1.2\">"
+			+ "<privilege><name>one</name><description>first</description></privilege>"
+			+ "<privilege><name>two</name><description>second</description></privilege>"
+			+ "<privilege><name>three</name><description>third</description></privilege>"
+			+ "</module>";
+
+		Element documentElement = getRootElement(xml);
+		ModuleFileParser parser = new ModuleFileParser();
+
+		Method getprivileges = parser.getClass().getDeclaredMethod("getPrivileges", Element.class, String.class);
+		getprivileges.setAccessible(true);
+		List<Privilege> privileges = (List<Privilege>) getprivileges.invoke(parser, documentElement, "");
+
+		assertEquals(3, privileges.size());
+	}
+
+	@Test
+	public void getPrivileges_shouldNotAddPrivilegeWhenMissingName() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><module configVersion=\"1.2\">"
+			+ "<privilege><description>first</description></privilege>"
+			+ "</module>";
+
+		Element documentElement = getRootElement(xml);
+		ModuleFileParser parser = new ModuleFileParser();
+
+		Method getprivileges = parser.getClass().getDeclaredMethod("getPrivileges", Element.class, String.class);
+		getprivileges.setAccessible(true);
+		List<Privilege> privileges = (List<Privilege>) getprivileges.invoke(parser, documentElement, "");
+
+		assertEquals(0, privileges.size());
+	}
+
+	@Test
+	public void getPrivileges_shouldNotAddPrivilegeWhenMissingDescription() throws Exception {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><module configVersion=\"1.2\">"
+			+ "<privilege><name>one</name></privilege>"
+			+ "</module>";
+
+		Element documentElement = getRootElement(xml);
+		ModuleFileParser parser = new ModuleFileParser();
+
+		Method getprivileges = parser.getClass().getDeclaredMethod("getPrivileges", Element.class, String.class);
+		getprivileges.setAccessible(true);
+		List<Privilege> privileges = (List<Privilege>) getprivileges.invoke(parser, documentElement, "");
+
+		assertEquals(0, privileges.size());
+	}
+	
 }
